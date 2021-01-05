@@ -10,4 +10,4 @@ if (UNIX)
     set(CMAKE_CXX_FLAGS -pthread)
 endif ()
 
-add_executable(VoxelNetwork main.cpp)
+add_executable(VoxelNetwork src/main.cpp)
