@@ -8,7 +8,7 @@ class VoxelNetworkServer(ConanFile):
 
     requires = (
         "spdlog/1.8.0",
-        "asio/1.18.0",
+        "boost/1.75.0",
         "opencl-headers/2020.06.16"
     )
 
