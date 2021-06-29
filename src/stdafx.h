@@ -1,5 +1,7 @@
 #pragma once
 
+#pragma execution_character_set("utf-8")
+
 #define NOMINMAX
 //#define BOOST_ASIO_NO_TS_EXECUTORS
 

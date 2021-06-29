@@ -4,8 +4,8 @@
 
 typedef unsigned int Protocal;
 
-#define Protocal_Tcp 0;
-#define Protocal_Udp 1;
+#define Protocal_Tcp 0
+#define Protocal_Udp 1
 
 class Data {
 public:
@@ -20,4 +20,4 @@ public:
         Buffer = data;
         Input = std::string(Buffer.begin(), Buffer.end());
     }
-}
+};

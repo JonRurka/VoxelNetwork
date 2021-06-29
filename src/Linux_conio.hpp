@@ -9,9 +9,12 @@
 
 #ifdef LINUX_BUILD
 
+#define bool int
+#define false 0
+#define true 1
 #include <sys/select.h>
 #include <termios.h>
-#include <stropts.h>
+#include <sys/ioctl.h>
 
 int kbhit() {
     static const int STDIN = 0;

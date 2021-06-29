@@ -12,7 +12,7 @@ typedef unsigned int Remove;
 class BufferUtils {
 public:
 	static std::vector<char> AddLength(std::vector<char> data) {
-		UINT16 len = data.size();
+		uint16_t len = data.size();
 		char lo = len & 0xFF;
 		char hi = len >> 8;
 		std::vector<char> len_v = {lo, hi};

@@ -4,6 +4,7 @@
 #include <boost/bind.hpp>
 #include <boost/array.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/timer.hpp>
 
 #include "../Logger.h"
 #include "../IUser.h"
@@ -12,12 +13,12 @@
 
 using boost::asio::ip::tcp;
 using boost::asio::ip::udp;
+using boost::asio::ip::address;
 
 
 class tcp_connection : public boost::enable_shared_from_this<tcp_connection> {
 private:
 	tcp::socket socket_;
-	char* read_bytes;
 	std::map<int, std::vector<char>> send_buff;
 	int sent;
 	char length_buff[2];
@@ -33,8 +34,6 @@ public:
 	{
 		return socket_;
 	}
-
-	char* read_bytes;
 
 	void Send(char* sending, size_t len)
 	{
@@ -69,7 +68,7 @@ private:
 	tcp_connection(boost::asio::io_context& io_context)
 		: socket_(io_context)
 	{
-		read_bytes = new char[1024];
+		ZeroMemory(length_buff, 2);
 		sent = 0;
 	}
 
@@ -78,17 +77,7 @@ private:
 		//send_buff.erase(sent_id);
 	}
 
-	void handle_read(const boost::system::error_code&, size_t transfered)
-	{
-		short size = (short)&length_buff;
-
-		char* message = new char[size];
-
-		Logger::Log("Received bytes: " + std::to_string(size));
-		//boost::asio::read(socket_, boost::asio::buffer(message, size));
-
-		Start_Read();
-	}
+	void handle_read(const boost::system::error_code&, size_t transfered);
 };
 
 class tcp_server {
@@ -119,7 +108,7 @@ public:
 	{
 		if (!error)
 		{
-			new_connection->Write("test", 4);
+			//new_connection->Send("test", 4);
 		}
 
 		start_accept();
@@ -191,7 +180,7 @@ class AsyncServer {
 public:
 	class SocketUser {
 	public:
-		IUser User;
+		IUser* User;
 		std::string SessionToken;
 		int Permission;
 		bool Connected;
@@ -201,8 +190,135 @@ public:
 		int UdpID;
 		bool CloseMessage;
 
+		tcp::endpoint TcpEndPoint;
+		udp::endpoint UdpEndPoint;
 
-	}
+	private:
+		AsyncServer* _server;
+		boost::timer timeOutWatch;
+
+	public:
+
+		SocketUser(AsyncServer* server, tcp_connection::pointer client, tcp::endpoint endPoint)
+		{
+			_server = server;
+			//SessionToken = HashHelper.RandomKey(8);
+			TcpEndPoint = endPoint;
+			timeOutWatch.restart();
+			UdpID = -1;
+			Permission = 0;
+			Connected = true;
+			IsAuthenticated = false;
+			UdpEnabled = false;
+
+			
+
+		}
+
+		void EnableUdp(int port)
+		{
+			//UdpEndPoint.port() = port;
+			//Logger.Log("UDP end point: {0}:{1}", udpEndPoint.Address.ToString(), udpEndPoint.Port);
+			UdpEnabled = true;
+		}
+
+		void SetUser(IUser* user)
+		{
+			User = user;
+			if (User != NULL)
+			{
+				//Logger::Log("Set user: " + ((User)User).Name);
+				//User.SetSocket(this);
+			}
+			else
+			{
+				Logger::Log("IUser null");
+			}
+		}
+
+		void Send(char command, std::string message, Protocal type = Protocal_Tcp)
+		{
+			std::vector<char> msg(message.begin(), message.end());
+
+			Send(command, msg, type);
+		}
+
+		void Send(char cmd, std::vector<char> data, Protocal type = Protocal_Tcp)
+		{
+			Send(BufferUtils::AddFirst(cmd, data), type);
+		}
+
+		void Send(std::vector<char> data, Protocal type = Protocal_Tcp)
+		{
+			if (!Connected)
+				return;
+
+			//try
+			//{
+				if (type == Protocal_Tcp || !UdpEnabled)
+				{
+					//if (_stream != null && data != null)
+					//	_stream.SendMessasge(data);
+				}
+				else
+				{
+					//_server.SendUdp(data, UdpEndPoint);
+				}
+			/*}
+			catch (IOException)
+			{
+				Close(false, "Send IOException");
+			}
+			catch (SocketException)
+			{
+				Close(false, "Send SocketException");
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError("{0}: {1}\n{2}", ex.GetType(), ex.Message, ex.StackTrace);
+			}*/
+		}
+
+		std::string GetIP()
+		{
+			address addr = TcpEndPoint.address();
+			return addr.to_string();
+		}
+
+		void Close(bool sendClose, std::string reason = "")
+		{
+			if (Connected)
+			{
+				Connected = false;
+
+				if (User != NULL)
+				{
+					//User.Disconnected();
+				}
+
+				//if (CloseMessage)
+				//	Logger::Log("{0}: closed {1}", SessionToken, reason != "" ? "- " + reason : "");
+				//_server.RemoveUdpID(UdpID);
+			}
+		}
+
+	private:
+
+		void ProcessReceiveBuffer(std::vector<char> buffer, Protocal type)
+		{
+			timeOutWatch.restart();
+
+			if (buffer.size() > 0)
+			{
+				char command = buffer[0];
+				buffer = BufferUtils::RemoveFront(Remove_CMD, buffer);
+				Data data(type, command, buffer);
+				//_server.Process(this, data);
+			}
+			else
+				Logger::Log(std::to_string(type) + ": Received empty buffer!");
+		}
+	};
 	
 
 	void Test();
