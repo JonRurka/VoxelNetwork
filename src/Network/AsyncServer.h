@@ -232,7 +232,7 @@ public:
 			}
 			else
 			{
-				Logger::Log("IUser null");
+				//Logger::Log("IUser null");
 			}
 		}
 
@@ -315,8 +315,9 @@ public:
 				Data data(type, command, buffer);
 				//_server.Process(this, data);
 			}
-			else
-				Logger::Log(std::to_string(type) + ": Received empty buffer!");
+			else {
+				//Logger::Log(std::to_string(type) + ": Received empty buffer!");
+			}
 		}
 	};
 	
